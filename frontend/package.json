@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "node server.mjs", "start": "node server.mjs", "test": "node --test tests/*.test.mjs", "check": "node --check app.js && node --check domain.js && node --check api.js && node --check search-model.js && node --check live-search.js && node --check server.mjs" },
+  "scripts": { "dev": "node server.mjs", "start": "node server.mjs", "test": "node --test tests/*.test.mjs", "check": "node --check app.js && node --check domain.js && node --check api.js && node --check search-model.js && node --check live-search.js && node --check chat-api.js && node --check live-chat.js && node --check server.mjs" },
   "engines": { "node": ">=20" }
 }

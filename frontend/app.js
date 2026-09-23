@@ -1,6 +1,7 @@
 import { products, categories } from './catalog.js';
-import { money, normalize, searchProducts, available, addToCart, isExplicitConfirmation, restoreCart } from './domain.js';
+import { money, searchProducts, available, addToCart, restoreCart } from './domain.js';
 import { initLiveSearch } from './live-search.js';
+import { initLiveChat } from './live-chat.js';
 
 const $ = selector => document.querySelector(selector);
 const cities = ['Алматы', 'Астана', 'Шымкент'];
@@ -34,14 +35,12 @@ let city = cities.includes(storage.get('ekt-city')) ? storage.get('ekt-city') : 
 let cart = restoreCart(storage.get('ekt-cart'), products, cities);
 let favorites;
 try { favorites = new Set(JSON.parse(storage.get('ekt-favorites') || '[]').filter(id => products.some(p => p.id === id))); } catch { favorites = new Set(); }
-let category = 'all', brandFilters = new Set(), favoritesOnly = false, pending = null, currentProduct = null, busy = false;
-let proposalSerial = 0, toastTimer;
+let category = 'all', brandFilters = new Set(), favoritesOnly = false;
+let toastTimer;
 const byId = id => products.find(p => p.id === Number(id));
 const liveSearch = initLiveSearch(() => { renderCategories(); renderProducts(); renderCounters(); });
 $('#favorites-button').setAttribute('aria-label', 'Избранное демо-подборки');
 $('#cart-button').setAttribute('aria-label', 'Демонстрационная корзина');
-$('.chat-disclaimer').textContent = 'Демо-чат · не использует результаты поиска API';
-$('.welcome p').textContent = 'Это демонстрационный диалог по 8 тестовым позициям. Поиск по настоящему каталогу работает в строке поиска магазина.';
 
 function toast(text) { $('#toast').textContent = text; $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 3600); }
 function saveCart() { storage.set('ekt-cart', JSON.stringify(cart)); renderCounters(); renderProducts(); if ($('#cart-dialog').open) renderCart(); }
@@ -77,19 +76,19 @@ function renderCart() {
   $('#cart-summary').innerHTML = cart.length ? `<div class="summary-line"><span>Итого</span><span>${money(cart.reduce((sum, i) => sum + byId(i.id).price * i.quantity, 0))}</span></div><button class="full-button" id="export-cart">Скачать список товаров</button>` : '';
 }
 function detail(p) {
-  currentProduct = p;
+
   $('#product-detail').innerHTML = `<div class="detail-grid"><img src="${p.image}" alt="${p.name}"><div><span class="eyebrow muted">${p.brand} · ${p.vendor || p.article}</span><h2>${p.name}</h2><p class="product-subtitle">${p.subtitle}</p><dl>${p.specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>${p.conflict ? '<p class="warning">В источнике есть расхождение: в названии и описании — 160 А, в поле характеристик — 250 А. Уточните номинал перед выбором.</p>' : ''}<span class="stock ${available(p, city) ? '' : 'empty'}">${city}: ${available(p, city)} шт.</span><div class="price">${money(p.price)}</div><p class="stock-note">${p.verified ? 'Снимок API от 23.09.2026. Остатки не обновляются онлайн.' : 'Демонстрационные остатки. Цена из снимка каталога.'}</p><div class="detail-actions"><button data-add="${p.id}" ${!available(p, city, cart) ? 'disabled' : ''}>Добавить в корзину</button><button data-discuss="${p.id}">Спросить о товаре</button></div><p class="stock-note">Сертификат не загружен в демонстрационную выборку.</p></div></div>`;
   $('#product-dialog').showModal();
 }
 const info = {
   delivery: ['Доставка и оплата', '<p>Условия зависят от города, состава заказа и способа получения. В демонстрации стоимость и сроки доставки не рассчитываются.</p><p>Актуальные условия уточните на <a href="https://ekt.kz/" target="_blank" rel="noopener noreferrer">сайте Электрокомплект</a> или по телефону <a href="tel:+77273468888">+7 (727) 346-88-88</a>.</p>'],
-  demo: ['О демонстрации', '<p>Это прототип для HackAlem AI, а не действующий интернет-магазин. Чат работает по демонстрационным сценариям без подключения языковой модели.</p><p>Названия, изображения и цены — снимок API EKT от 23 сентября 2026 года. Остатки товара 027228 взяты из API; у остальных товаров — тестовые значения. Валюта отображается как тенге для демонстрации.</p><p>Корзина и избранное хранятся только в этом браузере. Заказы и платежи не отправляются. На следующем этапе интерфейс подключается к бэкенду команды.</p>']
+  demo: ['О демонстрации', '<p>Это прототип для HackAlem AI, а не действующий интернет-магазин. Чат подключён к backend: ответ формируется ИИ или резервным поиском по артикулу. Оба режима используют одинаковое отображение ответа.</p><p>Названия, изображения и цены — снимок API EKT от 23 сентября 2026 года. Остатки товара 027228 взяты из API; у остальных товаров — тестовые значения. Валюта отображается как тенге для демонстрации.</p><p>Корзина и избранное хранятся только в этом браузере. Заказы и платежи не отправляются. Чат не оформляет заказы и не меняет корзину.</p>']
 };
 function openInfo(type) {
   $('#info-title').textContent = info[type][0]; $('#info-body').innerHTML = info[type][1];
   if (type === 'demo') {
     const searchNote = document.createElement('p');
-    searchNote.textContent = 'Режим «Поиск в каталоге EKT» обращается к локальному backend и показывает данные SQLite без тестовых остатков. Чат, избранное и корзина работают только с демо-подборкой. Внешний EKT API напрямую из браузера не вызывается.';
+    searchNote.textContent = 'Режим «Поиск в каталоге EKT» обращается к локальному backend и показывает данные SQLite без тестовых остатков. Чат отдельно обращается к POST /api/chat. Избранное и корзина работают только с демо-подборкой. Внешний EKT API напрямую из браузера не вызывается.';
     $('#info-body').prepend(searchNote);
   }
   $('#info-dialog').showModal();
@@ -97,81 +96,8 @@ function openInfo(type) {
 function openChat(focus = true) { $('#assistant').classList.add('mobile-open'); $('#chat-launch').classList.add('hidden'); if (focus) $('#chat-input').focus({ preventScroll: true }); }
 function scrollChat() { $('#messages').scrollTop = $('#messages').scrollHeight; }
 function message(text, who = 'assistant') { const el = document.createElement('div'); el.className = `${who}-message`; el.textContent = text; $('#messages').append(el); scrollChat(); return el; }
-function chatProduct(p) {
-  const el = document.createElement('div'); el.className = 'chat-product';
-  el.innerHTML = `<div class="chat-product-top"><img src="${p.image}" alt="${p.name}"><div><strong>${p.name}</strong><small>${p.vendor || p.article} · ${city} · ${available(p, city)} шт.</small><span class="chat-price">${money(p.price)}</span></div></div><button data-propose="${p.id}">${available(p, city, cart) ? 'Выбрать и указать количество' : 'Посмотреть характеристики'}</button>`;
-  $('#messages').append(el); scrollChat();
-}
-function cancelProposal(reason) {
-  if (!pending) return;
-  const el = document.getElementById(`proposal-${pending.token}`);
-  if (el) { el.className = 'confirmation-done'; el.textContent = reason || 'Предложение отменено'; }
-  pending = null;
-}
-function propose(p, quantity = 1) {
-  cancelProposal('Предложение заменено новым');
-  const remaining = available(p, city, cart);
-  if (!remaining) { message(`Для города ${city} нельзя добавить эту позицию: свободный остаток — 0. Можно посмотреть характеристики или выбрать другой товар.`); return; }
-  if (!Number.isSafeInteger(quantity) || quantity < 1) { message('Укажите целое количество от 1.'); return; }
-  if (quantity > remaining) { message(`Вы запросили ${quantity} шт., но для города ${city} можно добавить ещё ${remaining} шт. Укажите меньшее количество — я подготовлю новое предложение.`); currentProduct = p; return; }
-  pending = { token: ++proposalSerial, id: p.id, city, quantity };
-  const el = document.createElement('div'); el.className = 'chat-proposal'; el.id = `proposal-${pending.token}`;
-  el.innerHTML = `<strong>Добавить в корзину?</strong><span>${p.name} · ${p.vendor || p.article}</span><div>${quantity} шт. × ${money(p.price)} · ${city}</div>${p.conflict ? '<p class="warning">В каталоге расходятся номиналы 160 / 250 А. Подбор по току требует уточнения.</p>' : ''}<div class="proposal-total">Итого ${money(p.price * quantity)}</div><div class="proposal-actions"><button data-confirm="${pending.token}">Да, добавить ${quantity} шт.</button><button data-cancel="${pending.token}">Отмена</button></div>`;
-  $('#messages').append(el); currentProduct = p; scrollChat();
-}
-function confirmProposal(token) {
-  if (!pending || pending.token !== Number(token)) return;
-  const proposal = pending;
-  const result = addToCart(cart, byId(proposal.id), proposal.city, proposal.quantity);
-  if (result.error) { cancelProposal('Предложение недоступно'); message(result.error + ' Укажите новое количество.'); return; }
-  cart = result.cart; cancelProposal('✓ Добавлено в корзину'); saveCart();
-  const el = message(`Готово! Добавлено ${proposal.quantity} шт. Список товаров можно проверить в корзине.`);
-  const link = document.createElement('a'); link.href = '#cart'; link.className = 'chat-cart-link'; link.textContent = 'Перейти в корзину →'; link.addEventListener('click', e => { e.preventDefault(); openCart(); }); el.append(link); scrollChat();
-}
-function answer(raw) {
-  const text = normalize(raw);
-  if (isExplicitConfirmation(raw)) { if (pending) confirmProposal(pending.token); else message('Сначала выберите товар и количество. Я покажу предложение, которое можно подтвердить.'); return; }
-  if (/^(нет|отмена|не надо|не добавляй|не добавлять)[.!\s]*$/.test(text)) { cancelProposal(); message('Хорошо, ничего не добавляю. Продолжим подбор?'); return; }
-  // Any new intent invalidates an old proposal; a later "yes" cannot confirm an outdated choice.
-  cancelProposal('Предложение отменено после нового сообщения');
-  if (/(достав|оплат|минимальн)/.test(text)) { message(`Для города ${city} сроки и стоимость доставки нужно уточнить у менеджера. В демо эти условия не загружены. Актуальная информация доступна на ekt.kz или по телефону +7 (727) 346-88-88. Платёжные данные в чат отправлять не нужно.`); return; }
-  if (/(спасибо|благодарю)/.test(text)) { message('Пожалуйста! Если понадобится ещё что-то для проекта — напишите.'); return; }
-  const match = products.find(p => [p.article, p.vendor].filter(Boolean).some(a => text.includes(normalize(a))));
-  const qtyMatch = text.match(/(?:^|\s)(-?\d+(?:[.,]\d+)?)\s*(?:шт(?:ук[аи]?)?\.?|штук|единиц)/) || (!match && text.match(/(?:добавь(?:те)?|добавить|возьм[еу]|нужно|нужны)\s+(-?\d+(?:[.,]\d+)?)(?=\s|$)/));
-  const quantity = qtyMatch ? Number(qtyMatch[1].replace(',', '.')) : 1;
-  if (/(аналог|замен)/.test(text)) {
-    const p = match || currentProduct;
-    if (!p) { message('Напишите артикул товара, для которого нужна замена. Например: «Нужен аналог 027230».'); return; }
-    if (p.category === 'breakers') {
-      message('Для замены нужно сопоставить номинальный ток, число полюсов, отключающую способность и монтаж. У 027228 в каталоге есть расхождение 160 / 250 А; у 027230 указано 25 кА вместо 18 кА. Я не могу подтвердить их взаимозаменяемость. Покажу кандидата для проверки специалистом.');
-      chatProduct(byId(p.id === 515291 ? 515288 : 515291)); return;
-    }
-    message('В демонстрационной выборке нет подтверждённого аналога этой позиции. Уточните требования к характеристикам у менеджера.'); return;
-  }
-  if (/сертификат/.test(text)) { message('В загруженной выборке сертификат не предоставлен. Я не буду подставлять неподтверждённую ссылку. Запросите документ у менеджера по артикулу товара.'); return; }
-  if (/(добав|возьм|купить|нужно\s+\d|нужны\s+\d)/.test(text) && !/(не\s+добав|без\s+добав)/.test(text) && (match || currentProduct)) { propose(match || currentProduct, quantity); return; }
-  if (qtyMatch && currentProduct && !match) { propose(currentProduct, quantity); return; }
-  if (match) {
-    currentProduct = match;
-    message(`${match.name}, артикул ${match.vendor || match.article}.\n${city}: ${available(match, city)} шт. Цена из снимка каталога: ${money(match.price)}.${match.conflict ? '\nВнимание: в названии и описании указан ток 160 А, а в характеристиках — 250 А. Номинал требует уточнения.' : ''}\n${match.verified ? 'Это снимок остатков от 23.09.2026, не онлайн-проверка.' : 'Остатки этой позиции демонстрационные.'}`);
-    chatProduct(match); return;
-  }
-  let group = /автомат|выключател/.test(text) ? 'breakers' : /ламп|свет/.test(text) ? 'lighting' : /короб|монтаж/.test(text) ? 'installation' : /реле|автоматизац/.test(text) ? 'automation' : null;
-  let matches = group ? products.filter(p => p.category === group) : searchProducts(products, text);
-  if (matches.length) { currentProduct = null; message(group === 'breakers' ? 'Какой номинальный ток и число полюсов нужны? Вот несколько позиций из каталога. Укажите артикул и количество — подготовлю предложение.' : 'Вот подходящие позиции из демонстрационной выборки. Выберите товар или напишите его артикул и количество.'); matches.slice(0, 2).forEach(chatProduct); return; }
-  if (/налич/.test(text)) { message('Напишите артикул, например 027228. Покажу остаток для выбранного города.'); return; }
-  message('В демо я могу найти товар по артикулу, показать автоматы, лампы, коробки и реле, объяснить наличие и подготовить корзину. Попробуйте «Есть 027228?» или «Подбери лампу».');
-}
-async function send(text) {
-  if (busy || !text.trim()) return;
-  openChat(false); message(text.trim(), 'user'); $('#quick-actions')?.remove();
-  $('#chat-input').value = ''; $('#chat-input').style.height = '';
-  busy = true; $('#chat-form button').disabled = true;
-  const typing = document.createElement('div'); typing.className = 'typing'; typing.textContent = 'Смотрю в каталоге…'; $('#messages').append(typing); scrollChat();
-  await new Promise(resolve => setTimeout(resolve, 430)); typing.remove();
-  try { answer(text); } catch { message('Не удалось обработать запрос. Попробуйте ещё раз.'); }
-  finally { busy = false; $('#chat-form button').disabled = false; scrollChat(); }
-}
+const backendChat = initLiveChat({ openChat, scrollChat, message });
+function send(text) { return backendChat.send(text); }
 
 document.addEventListener('click', e => {
   const button = e.target.closest('button'); if (!button) return;
@@ -180,12 +106,9 @@ document.addEventListener('click', e => {
   if (d.favorite) { const id = Number(d.favorite); favorites.has(id) ? favorites.delete(id) : favorites.add(id); storage.set('ekt-favorites', JSON.stringify([...favorites])); renderProducts(); renderCounters(); }
   if (d.detail) detail(byId(d.detail));
   if (d.add) addProduct(byId(d.add));
-  if (d.ask) send(`Нужен аналог ${byId(d.ask).vendor || byId(d.ask).article}`);
-  if (d.discuss) { $('#product-dialog').close(); send(`Расскажи о ${byId(d.discuss).vendor || byId(d.discuss).article}`); }
+  if (d.ask) send(`Проверь наличие товара ${byId(d.ask).article}`);
+  if (d.discuss) { $('#product-dialog').close(); send(`Расскажи о товаре ${byId(d.discuss).article}`); }
   if (d.prompt) send(d.prompt);
-  if (d.propose) { const p = byId(d.propose); cancelProposal('Предложение отменено: выбран другой товар'); if (available(p, city, cart)) { currentProduct = p; message(`Выбран ${p.vendor || p.article}. Сколько штук нужно? Напишите, например, «2 шт.».`); $('#chat-input').focus(); } else detail(p); }
-  if (d.confirm) confirmProposal(d.confirm);
-  if (d.cancel && pending?.token === Number(d.cancel)) { cancelProposal(); message('Предложение отменено. Корзина не изменилась.'); }
   if (d.close) document.getElementById(d.close).close();
   if (d.info) openInfo(d.info);
   if (d.remove) { cart = cart.filter(i => !(i.id === Number(d.remove) && i.city === d.city)); saveCart(); }
@@ -197,8 +120,7 @@ document.addEventListener('click', e => {
   }
 });
 $('#city').value = city;
-$('#chat-city').textContent = `Подбираем товары: ${city}`;
-$('#city').addEventListener('change', () => { city = $('#city').value; storage.set('ekt-city', city); $('#chat-city').textContent = `Подбираем товары: ${city}`; cancelProposal('Предложение отменено: город изменился'); renderProducts(); message(`Теперь подбираем товары для города ${city}. Ранее добавленные позиции остаются привязаны к своим городам.`); });
+$('#city').addEventListener('change', () => { city = $('#city').value; storage.set('ekt-city', city); renderProducts(); toast('Город изменён для демо-подборки. Чат возвращает общие данные EKT.'); });
 $('#search').addEventListener('input', () => { if (liveSearch.active) liveSearch.search(); else renderProducts(); });
 $('#search-form').addEventListener('submit', e => { e.preventDefault(); if (liveSearch.active) liveSearch.search(true); $('#catalog').scrollIntoView({ behavior: 'smooth' }); });
 $('#sort').addEventListener('change', renderProducts); $('#in-stock').addEventListener('change', renderProducts);
