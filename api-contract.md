@@ -13,7 +13,7 @@
 Ошибки в формате `{"detail": "описание"}`: 404 — EKT вернул 404; 502 — ошибка EKT, авторизации, JSON или карточка с отсутствующим/неверным ID; 503 — нет credentials либо лимит EKT; 504 — таймаут. Некорректный параметр `id` — 422. Тела ошибок EKT и credentials наружу не передаются.
 
 Backend: `http://127.0.0.1:8000`. Разрешённый origin: `http://127.0.0.1:5173`.
-CORS разрешает GET и его OPTIONS preflight; cookies/credentials не требуются, wildcard не используется. `http://localhost:5173` — другой origin, он не разрешён.
+CORS разрешает GET/POST и OPTIONS preflight; cookies/credentials не требуются, wildcard не используется. `http://localhost:5173` — другой origin, он не разрешён.
 
 ## Запрос
 
@@ -94,3 +94,5 @@ CORS разрешает GET и его OPTIONS preflight; cookies/credentials н�
 Обёртка: `query` — запрос после обрезки пробелов; `match_type` — `exact_article` или `substring`; `count` — длина `items`; `source` — `sqlite`; `synced_at` — время последней синхронизации в ISO 8601; `pages_scanned` — 0; `catalog_complete` — true для опубликованного локального снимка. Цены соответствуют времени синхронизации.
 
 Frontend: при 200 показать товары или пустое состояние по `items.length`; при 503 показать сообщение о недоступном каталоге; при 422 — ошибку параметра запроса.
+
+Чат: [контракт POST /api/chat](chat-api-contract.md).
