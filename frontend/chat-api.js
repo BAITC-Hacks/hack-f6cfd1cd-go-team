@@ -20,7 +20,25 @@ export function parseChatResponse(data) {
       image: safeEktUrl(p.image), url: safeEktUrl(p.url), source: p.source
     };
   });
-  return { sessionId: data.session_id, message: data.message, products, tools, mode: data.mode };
+  const rawAnalogs = data.analogs ?? [];
+  if (!Array.isArray(rawAnalogs)) invalid();
+  const analogs = rawAnalogs.map(a => {
+    if (!a || !Number.isSafeInteger(a.source_product_id) || !a.product || !Number.isSafeInteger(a.product.id) || typeof a.explanation !== 'string' || typeof a.disclaimer !== 'string') invalid();
+    const p = a.product;
+    return { sourceProductId: a.source_product_id, product: {
+      id: p.id, name: typeof p.name === 'string' ? p.name : 'Название не предоставлено',
+      article: typeof p.article === 'string' ? p.article : null,
+      price: typeof p.price === 'string' || (typeof p.price === 'number' && Number.isFinite(p.price)) ? p.price : null,
+      quantity: typeof a.quantity === 'number' && Number.isFinite(a.quantity) ? a.quantity : null,
+      image: safeEktUrl(p.image), url: safeEktUrl(p.url), source: 'ekt_detail'
+    }, explanation: a.explanation, disclaimer: a.disclaimer };
+  });
+  const validCartItem = item => item && Number.isSafeInteger(item.product_id) && typeof item.article === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0;
+  const pendingConfirmation = data.pending_confirmation ?? null;
+  if (pendingConfirmation !== null && !validCartItem(pendingConfirmation)) invalid();
+  const cart = data.cart ?? null;
+  if (cart !== null && (cart.type !== 'demo_session' || !Array.isArray(cart.items) || !cart.items.every(item => validCartItem(item) && typeof item.name === 'string'))) invalid();
+  return { sessionId: data.session_id, message: data.message, products, tools, mode: data.mode, analogs, pendingConfirmation, cart };
 }
 const errorMessages = {
   session_not_found: 'Диалог истёк или сервер перезапущен. Начните новый диалог.',

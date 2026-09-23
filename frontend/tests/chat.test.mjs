@@ -1,8 +1,73 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchChat, parseChatResponse, createChatSession, ChatApiError } from '../chat-api.js';
+import { renderSessionCart } from '../live-chat.js';
 const id = '11111111-1111-4111-8111-111111111111';
 const response = (changes = {}) => ({ session_id: id, message: 'Ответ', products: [], tools_used: [], mode: 'fallback', ...changes });
+
+test('Older chat responses keep optional features absent', () => {
+  const parsed = parseChatResponse(response());
+  assert.deepEqual(parsed.analogs, []);
+  assert.equal(parsed.cart, null);
+  assert.equal(parsed.pendingConfirmation, null);
+});
+
+test('Analog explanation and disclaimer survive both modes; unsafe links are removed', () => {
+  const analog = {source_product_id:1,product:{id:2,name:'Кандидат',article:'A',price:null,quantity:7,image:'https://evil.example/x',url:'javascript:alert(1)'},quantity:7,explanation:'Совпали обозначения',matched_properties:{},disclaimer:'Совместимость не подтверждена'};
+  for (const mode of ['openai','fallback']) {
+    const result = parseChatResponse(response({mode,analogs:[analog]})).analogs[0];
+    assert.equal(result.explanation,analog.explanation);
+    assert.equal(result.disclaimer,analog.disclaimer);
+    assert.equal(result.product.quantity,7);
+    assert.equal(result.product.price,null);
+    assert.equal(result.product.image,null);
+    assert.equal(result.product.url,null);
+  }
+});
+
+test('Proposal and confirmation use ordinary messages in the same session; only server changes cart', async () => {
+  const bodies=[];
+  const item={product_id:515291,article:'200300285_',quantity:2};
+  const session=createChatSession((message,options)=>fetchChat(message,{...options,fetchImpl:async (_url,init)=>{
+    bodies.push(JSON.parse(init.body));
+    return {ok:true,json:async()=>response({cart:{type:'demo_session',items:bodies.length===1?[]:[{...item,name:'Legrand'}]},pending_confirmation:bodies.length===1?item:null})};
+  }}));
+  const proposal=await session.send('Добавь 2 штуки товара 200300285_');
+  assert.deepEqual(proposal.cart.items,[]);
+  assert.equal(proposal.pendingConfirmation.quantity,2);
+  const confirmed=await session.send('Да, добавь');
+  assert.equal(confirmed.pendingConfirmation,null);
+  assert.equal(confirmed.cart.items[0].quantity,2);
+  assert.deepEqual(bodies,[{message:'Добавь 2 штуки товара 200300285_',session_id:null},{message:'Да, добавь',session_id:id}]);
+});
+
+test('Malformed cart or proposal cannot appear as a successful cart snapshot', () => {
+  for (const changes of [
+    {cart:{type:'real',items:[]}},
+    {cart:{type:'demo_session',items:[{product_id:1,article:'A',name:'A',quantity:-2}]}},
+    {pending_confirmation:{product_id:1,article:'A',quantity:0}},
+    {analogs:[{product:{id:2}}]}
+  ]) assert.throws(()=>parseChatResponse(response(changes)),{code:'invalid_response'});
+});
+
+test('Cart UI distinguishes pending from added quantity and renders backend text literally', () => {
+  const original=globalThis.document;
+  globalThis.document={createElement:tag=>({tag,textContent:'',children:[],append(...nodes){this.children.push(...nodes);}})};
+  const text=node=>[node.textContent,...node.children.map(text)].join(' ');
+  try {
+    const pending=renderSessionCart({cart:{items:[]},pendingConfirmation:{article:'<img onerror=alert(1)>',quantity:2}});
+    assert.match(text(pending),/Корзина пуста/);
+    assert.match(text(pending),/ещё не добавлено/);
+    assert.match(text(pending),/К добавлению: 2 шт/);
+    assert.match(text(pending),/Да, добавь/);
+    assert.match(text(pending),/<img onerror=alert\(1\)>/);
+    assert.ok(pending.children.every(node=>node.tag!=='img' && node.tag!=='a' && node.tag!=='button'));
+    const confirmed=renderSessionCart({cart:{items:[{name:'Legrand',article:'A',quantity:2}]},pendingConfirmation:null});
+    assert.match(text(confirmed),/В корзине: 2 шт/);
+    assert.doesNotMatch(text(confirmed),/Ожидает подтверждения/);
+    assert.equal(renderSessionCart({cart:null,pendingConfirmation:null}),null);
+  } finally { globalThis.document=original; }
+});
 test('Backend example without tools_used, image or url is accepted in both modes', () => {
   const payload = {
     session_id: id,
