@@ -25,3 +25,14 @@ data/
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Frontend generated and local files
+node_modules/
+coverage/
+.vite/
+.cache/
+.npm/
+*.tsbuildinfo
+
+# Local QA worktree (not part of the application)
+.qa-worktree/
