@@ -1,13 +1,6 @@
-# hack-f6cfd1cd-go-team
-Hackathon team repository for Go Team
-
-## Демонстрационный магазин EKT
-
-Фронтенд находится в `frontend/`: каталог, фильтры, карточки товаров, корзина и демонстрационный чат. Запуск: `cd frontend`, затем `npm run dev`. Открыть http://127.0.0.1:5173. Подробности и точки интеграции с бэкендом — в [frontend/README.md](frontend/README.md).
-
 ## RSI и простой бэктест
 
-Установка: `python -m pip install -r requirements.txt`.
+Установка: `python -m pip install -r requirements-rsi.txt`.
 
 ```python
 import pandas as pd
@@ -39,3 +32,4 @@ RSI ниже 30 даёт `buy`, выше 70 — `sell`, иначе `hold`.
 Проскальзывание не моделируется.
 
 Индикатор: [ta.momentum.RSIIndicator](https://technical-analysis-library-in-python.readthedocs.io/en/latest/ta.html#ta.momentum.RSIIndicator).
+
