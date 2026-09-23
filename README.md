@@ -1,10 +1,10 @@
 # EKT.kz — backend каталога
 
-Python + FastAPI: получение списка, карточки товара и поиск по каталогу EKT через Basic Auth. LLM, чат, frontend, корзина, аналоги и вложения пока не реализованы.
+Python + FastAPI: получение списка, карточки товара и поиск по каталогу EKT через Basic Auth. Добавлен минимальный AI-чат на OpenAI Responses API; frontend, корзина, аналоги и вложения пока не реализованы.
 
 ## Устройство
 
-- `backend/main.py` — FastAPI и три GET-маршрута.
+- `backend/main.py` — FastAPI, три GET-маршрута и POST /api/chat.
 - `backend/config.py` — настройки из `.env` в корне; переменные окружения имеют приоритет.
 - `backend/ekt_service.py` — EktService, запросы к EKT и обработка ошибок.
 - `requirements.txt` — зависимости.
@@ -67,7 +67,7 @@ python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ## Синхронизация и локальный поиск
 
 Контракт для frontend с точными примерами ответов: [api-contract.md](api-contract.md).
-CORS разрешён только для `http://127.0.0.1:5173`, метод GET, без credentials.
+CORS разрешён только для `http://127.0.0.1:5173`, методы GET/POST, без credentials.
 
 Перед первым поиском и для ручного обновления выполните из корня проекта:
 
@@ -127,3 +127,9 @@ python -m unittest discover -s tests -v
 Материалы подготовлены по исходному ТЗ и документу EKT. API корзины, условия покупки и будущий контракт чата остаются открытыми вопросами. Текущие маршруты предназначены для проверки каталога.
 
 Официальная документация: [настройки FastAPI](https://fastapi.tiangolo.com/advanced/settings/), [HTTPX Basic Auth](https://www.python-httpx.org/advanced/authentication/), [таймауты HTTPX](https://www.python-httpx.org/advanced/timeouts/).
+
+## AI-чат
+
+[Контракт POST /api/chat, ошибки и настройка](chat-api-contract.md). Реализация: `backend/chat.py`. Для чата заполните локальный `OPENAI_API_KEY`; модель по умолчанию `gpt-5.6-luna`, без автоматической подмены. Search/detail работают и без ключа OpenAI. Тесты чата используют fake LLM и не расходуют API-квоту.
+
+При отсутствии/ошибке OpenAI POST /api/chat использует детерминированный резервный поиск точного артикула и актуальный EKT detail. Поле mode различает openai/fallback. См. chat-api-contract.md.

@@ -32,14 +32,15 @@ class CorsTests(unittest.TestCase):
         self.assertEqual(response.headers['access-control-allow-origin'], 'http://127.0.0.1:5173')
         self.assertNotIn('access-control-allow-credentials', response.headers)
 
-    def test_preflight_allows_get_only(self):
-        for method, expected in [('GET', 200), ('POST', 400)]:
+    def test_preflight_allows_get_and_post(self):
+        for method, expected in [('GET', 200), ('POST', 200), ('DELETE', 400)]:
             response = self.client.options('/api/products/search', headers={
                 'Origin': 'http://127.0.0.1:5173',
                 'Access-Control-Request-Method': method,
+                'Access-Control-Request-Headers': 'content-type',
             })
             self.assertEqual(response.status_code, expected)
-            self.assertEqual(response.headers['access-control-allow-methods'], 'GET')
+            self.assertEqual(response.headers['access-control-allow-methods'], 'GET, POST')
 
     def test_other_origins_are_not_allowed(self):
         for origin in ['http://localhost:5173', 'https://example.test']:

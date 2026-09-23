@@ -26,7 +26,11 @@ class EktService:
         return await self._get("products", {"page": page})
 
     async def get_product_detail(self, product_id: int) -> Any:
-        return await self._get("products/detail", {"id": product_id})
+        data = await self._get("products/detail", {"id": product_id})
+        if (not isinstance(data, dict) or type(data.get("id")) is not int
+                or data["id"] != product_id):
+            raise EktError(502, "EKT API вернул некорректную карточку товара.")
+        return data
 
     async def _get(self, path: str, params: dict) -> Any:
         if self.auth is None:

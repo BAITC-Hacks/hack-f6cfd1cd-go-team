@@ -42,10 +42,10 @@ class BackendTests(unittest.TestCase):
                     self.assertEqual(request.url.query.decode(), query)
                     token = base64.b64encode(b"test-user:test-password").decode()
                     self.assertEqual(request.headers["Authorization"], f"Basic {token}")
-                    return httpx.Response(200, json={"data": [{"id": 515291}]})
+                    return httpx.Response(200, json={"id": 515291, "name": "Test product"})
                 response = self.request(path, handler)
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.json(), {"data": [{"id": 515291}]})
+                self.assertEqual(response.json(), {"id": 515291, "name": "Test product"})
 
     def test_invalid_parameters(self):
         for path in ["/api/products?page=0", "/api/products?page=abc",
