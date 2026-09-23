@@ -18,3 +18,10 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+data/
+*.sqlite3*
+*.sqlite*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

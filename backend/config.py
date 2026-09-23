@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ekt_api_base_url: AnyHttpUrl = "https://ekt.kz/api"
     ekt_api_username: SecretStr = SecretStr("")
     ekt_api_password: SecretStr = SecretStr("")
+    catalog_db_path: Path = Path(__file__).resolve().parent.parent / "data" / "catalog.sqlite3"
 
     @field_validator("ekt_api_base_url")
     @classmethod

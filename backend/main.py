@@ -7,11 +7,13 @@ from fastapi.responses import JSONResponse
 
 from backend.config import Settings
 from backend.ekt_service import EktError, EktService
+from backend.catalog import CatalogStore
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = Settings()
+    app.state.catalog = CatalogStore(settings.catalog_db_path)
     async with httpx.AsyncClient() as client:
         app.state.ekt_service = EktService(client, settings)
         yield
@@ -36,5 +38,5 @@ async def product_detail(request: Request, id: int = Query(..., ge=1)) -> Any:
 
 
 @app.get("/api/products/search")
-async def product_search(request: Request, q: str = Query(..., min_length=1, max_length=200)) -> Any:
-    return await request.app.state.ekt_service.search_products(q)
+def product_search(request: Request, q: str = Query(..., min_length=1, max_length=200)) -> Any:
+    return request.app.state.catalog.search(q)
