@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 import httpx
 
@@ -13,8 +13,10 @@ class EktError(Exception):
 
 
 class EktService:
-    def __init__(self, client: httpx.AsyncClient, settings: Settings):
+    def __init__(self, client: httpx.AsyncClient, settings: Settings, *,
+                 timeout: Optional[httpx.Timeout] = None):
         self.client = client
+        self.timeout = timeout if timeout is not None else httpx.Timeout(15.0, connect=5.0)
         self.base_url = str(settings.ekt_api_base_url).rstrip("/")
         username = settings.ekt_api_username.get_secret_value()
         password = settings.ekt_api_password.get_secret_value()
@@ -32,9 +34,13 @@ class EktService:
         try:
             response = await self.client.get(
                 f"{self.base_url}/{path}", params=params, auth=self.auth,
-                timeout=httpx.Timeout(15.0, connect=5.0), follow_redirects=False,
+                timeout=self.timeout, follow_redirects=False,
             )
             response.raise_for_status()
+        except httpx.ConnectTimeout:
+            raise EktError(504, "Таймаут соединения с EKT API.") from None
+        except httpx.ReadTimeout:
+            raise EktError(504, "Таймаут ожидания ответа EKT API.") from None
         except httpx.TimeoutException:
             raise EktError(504, "EKT API не ответил вовремя.") from None
         except httpx.HTTPStatusError as exc:

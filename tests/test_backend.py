@@ -80,6 +80,28 @@ class BackendTests(unittest.TestCase):
         response = self.request("/api/products", lambda r: httpx.Response(200, text="<html/>"))
         self.assertEqual(response.status_code, 502)
 
+    def test_sync_timeout_override_preserves_default_requests(self):
+        async def run():
+            for timeout, expected_read in [(None, 15.0),
+                                           (httpx.Timeout(15, connect=5, read=60), 60.0)]:
+                def handler(request):
+                    self.assertEqual(request.extensions['timeout']['read'], expected_read)
+                    self.assertEqual(request.extensions['timeout']['connect'], 5.0)
+                    return httpx.Response(200, json={'items': []})
+                async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+                    await EktService(client, self.settings, timeout=timeout).get_products()
+        asyncio.run(run())
+
+    def test_timeout_phase_is_reported_without_sensitive_details(self):
+        for error, expected in [(httpx.ConnectTimeout, 'соединения'),
+                                (httpx.ReadTimeout, 'ожидания ответа')]:
+            def handler(request):
+                raise error('sensitive-error', request=request)
+            response = self.request('/api/products', handler)
+            self.assertEqual(response.status_code, 504)
+            self.assertIn(expected, response.json()['detail'])
+            self.assertNotIn('sensitive-error', response.text)
+
     def test_dotenv_and_environment_precedence(self):
         with tempfile.TemporaryDirectory() as directory:
             env_file = Path(directory) / ".env"

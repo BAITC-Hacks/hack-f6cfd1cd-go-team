@@ -3,6 +3,7 @@ from typing import Any
 
 import httpx
 from fastapi import FastAPI, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.config import Settings
@@ -20,6 +21,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="EKT Catalog Backend", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5173"],
+    allow_methods=["GET"],
+    allow_credentials=False,
+)
 
 
 @app.exception_handler(EktError)

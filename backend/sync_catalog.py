@@ -30,8 +30,8 @@ async def sync_catalog(service: EktService, store: CatalogStore, progress=None,
                         if exc.status_code not in (502, 503, 504) or attempt == 2:
                             raise
                         if progress:
-                            progress(f"Страница {page}: повтор {attempt + 1}/2 после ошибки {exc.status_code}")
-                        await asyncio.sleep(attempt + 1)
+                            progress(f"Страница {page}: повтор {attempt + 1}/2. {exc.detail}")
+                        await asyncio.sleep(3 * (attempt + 1))
                 if not isinstance(data, dict) or not isinstance(data.get("items"), list):
                     raise EktError(502, "Неожиданная структура каталога EKT API.")
                 values = [product_values(item) for item in data["items"]]
@@ -63,7 +63,8 @@ async def main():
     if not (settings.ekt_api_username.get_secret_value() and settings.ekt_api_password.get_secret_value()):
         raise EktError(503, "Заполните credentials EKT в локальном .env.")
     async with httpx.AsyncClient() as client:
-        result = await sync_catalog(EktService(client, settings),
+        result = await sync_catalog(EktService(client, settings,
+                                              timeout=httpx.Timeout(15.0, connect=5.0, read=60.0)),
                                     CatalogStore(settings.catalog_db_path),
                                     progress=lambda message: print(message, flush=True))
     print(f"Готово: {result['products']} товаров, {result['pages']} страниц. База: {settings.catalog_db_path}")
