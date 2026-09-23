@@ -39,7 +39,17 @@ async def products(request: Request, page: int = Query(default=1, ge=1)) -> Any:
     return await request.app.state.ekt_service.get_products(page)
 
 
-@app.get("/api/products/detail")
+@app.get(
+    "/api/products/detail",
+    summary="Полная актуальная карточка товара из EKT",
+    description="Запрашивает EKT при каждом обращении. Возвращает исходные поля без "
+                "преобразования, включая склады, характеристики и документы, если они есть. "
+                "SQLite для карточки не используется.",
+    responses={404: {"description": "Ресурс не найден в EKT"},
+               502: {"description": "Ошибка EKT или некорректная карточка"},
+               503: {"description": "Нет credentials или превышен лимит EKT"},
+               504: {"description": "Таймаут EKT"}},
+)
 async def product_detail(request: Request, id: int = Query(..., ge=1)) -> Any:
     return await request.app.state.ekt_service.get_product_detail(id)
 
