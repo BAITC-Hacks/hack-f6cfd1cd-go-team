@@ -182,4 +182,4 @@ class ChatHTTPTests(unittest.TestCase):
             app.state.chat = ChatService(FakeLLM([answer('Здравствуйте')]), 'gpt-5.6-luna', Mock(), Mock())
             response = client.post('/api/chat', json={'message': 'Привет'})
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(set(response.json()), {'session_id', 'message', 'products', 'tools_used', 'mode'})
+            self.assertEqual(set(response.json()), {'session_id', 'message', 'products', 'tools_used', 'mode', 'analogs', 'cart', 'pending_confirmation'})

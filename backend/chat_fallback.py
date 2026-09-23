@@ -4,11 +4,12 @@ import re
 from starlette.concurrency import run_in_threadpool
 
 
-async def fallback_reply(message, catalog, ekt):
+async def fallback_reply(message, catalog, ekt, analog_service=None):
     candidates = list(dict.fromkeys(token.casefold() for token in
                                     re.findall(r'\w+(?:[-./]\w+)*', message)))
     used = []
     products = []
+    analogs = []
     if not candidates or len(candidates) > 30 or any(len(token) > 200 for token in candidates):
         text = 'Резервный поиск: укажите один точный артикул товара отдельным сообщением.'
     else:
@@ -37,4 +38,13 @@ async def fallback_reply(message, catalog, ekt):
             products = [{**{key: product.get(key) for key in
                            ('id', 'name', 'article', 'price', 'quantity', 'image', 'url')},
                          'source': 'ekt_detail'}]
-    return {'message': text, 'products': products, 'tools_used': used}
+            if product.get('quantity') == 0 and analog_service is not None:
+                result = await analog_service.find(product)
+                used.append('find_analogs')
+                analogs = result['items']
+                text += ' ' + result['message']
+                for analog in analogs:
+                    text += (f" Кандидат: {analog['product'].get('name')}; "
+                             f"артикул {analog['product'].get('article')}; остаток {analog['quantity']}. "
+                             + analog['explanation'])
+    return {'message': text, 'products': products, 'tools_used': used, 'analogs': analogs}
