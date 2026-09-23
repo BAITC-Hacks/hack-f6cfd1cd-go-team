@@ -1,6 +1,204 @@
-.qa-deps\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-  from starlette.testclient import TestClient as TestClient  # noqa
-----------------------------------------------------------------------
-Ran 75 tests in 4.063s
+test_actual_properties_match_and_missing_property_rejected (test_analogs.AnalogTests.test_actual_properties_match_and_missing_property_rejected) ... ok
+test_chat_fallback_zero_stock_triggers_analogs (test_analogs.AnalogTests.test_chat_fallback_zero_stock_triggers_analogs) ... ok
+test_conflicting_properties_rejected (test_analogs.AnalogTests.test_conflicting_properties_rejected) ... ok
+test_incomplete_properties_do_not_make_similar_names_reliable (test_analogs.AnalogTests.test_incomplete_properties_do_not_make_similar_names_reliable) ... ok
+test_no_candidate_or_candidate_without_stock (test_analogs.AnalogTests.test_no_candidate_or_candidate_without_stock) ... ok
+test_no_more_than_three_detail_calls (test_analogs.AnalogTests.test_no_more_than_three_detail_calls) ... ok
+test_openai_receives_analog_evidence (test_analogs.AnalogTests.test_openai_receives_analog_evidence) ... ok
+test_zero_stock_source_available_analog (test_analogs.AnalogTests.test_zero_stock_source_available_analog) ... ok
+test_dotenv_and_environment_precedence (test_backend.BackendTests.test_dotenv_and_environment_precedence) ... ok
+test_forwarding_and_auth (test_backend.BackendTests.test_forwarding_and_auth) ... ok
+test_invalid_json (test_backend.BackendTests.test_invalid_json) ... ok
+test_invalid_parameters (test_backend.BackendTests.test_invalid_parameters) ... ok
+test_lifespan_and_docs (test_backend.BackendTests.test_lifespan_and_docs) ... ok
+test_missing_credentials (test_backend.BackendTests.test_missing_credentials) ... ok
+test_network_errors (test_backend.BackendTests.test_network_errors) ... ok
+test_status_errors_do_not_leak_upstream_body (test_backend.BackendTests.test_status_errors_do_not_leak_upstream_body) ... ok
+test_sync_timeout_override_preserves_default_requests (test_backend.BackendTests.test_sync_timeout_override_preserves_default_requests) ... ok
+test_timeout_phase_is_reported_without_sensitive_details (test_backend.BackendTests.test_timeout_phase_is_reported_without_sensitive_details) ... ok
+test_contract_validation_missing_key_and_cors (test_chat.ChatHTTPTests.test_contract_validation_missing_key_and_cors) ... ok
+test_busy_session_rejected_and_capacity_bounded (test_chat.ChatTests.test_busy_session_rejected_and_capacity_bounded) ... ok
+test_catalog_failure_does_not_generate_answer (test_chat.ChatTests.test_catalog_failure_does_not_generate_answer) ... ok
+test_empty_search_and_bounded_results (test_chat.ChatTests.test_empty_search_and_bounded_results) ... ok
+test_history_limit_expiry_and_isolation (test_chat.ChatTests.test_history_limit_expiry_and_isolation) ... ok
+test_instructions_and_tools_scope (test_chat.ChatTests.test_instructions_and_tools_scope) ... ok
+test_provider_errors_use_fallback_without_changing_model (test_chat.ChatTests.test_provider_errors_use_fallback_without_changing_model) ... ok
+test_search_detail_response_and_followup (test_chat.ChatTests.test_search_detail_response_and_followup) ... ok
+test_tool_loop_is_bounded (test_chat.ChatTests.test_tool_loop_is_bounded) ... ok
+test_unknown_tool_and_unseen_id_rejected (test_chat.ChatTests.test_unknown_tool_and_unseen_id_rejected) ... ok
+test_D01_fallback_analog_has_real_evidence_and_disclaimer (test_chat_acceptance.AnalogAcceptance.test_D01_fallback_analog_has_real_evidence_and_disclaimer) ... ok
+test_D02_missing_critical_property_does_not_make_analog (test_chat_acceptance.AnalogAcceptance.test_D02_missing_critical_property_does_not_make_analog) ... ok
+test_D03_conflicting_property_rejects_analog (test_chat_acceptance.AnalogAcceptance.test_D03_conflicting_property_rejects_analog) ... ok
+test_D04_openai_receives_actual_analog_tool_evidence (test_chat_acceptance.AnalogAcceptance.test_D04_openai_receives_actual_analog_tool_evidence) ... ok
+test_D05_candidate_detail_failure_does_not_invent_analog (test_chat_acceptance.AnalogAcceptance.test_D05_candidate_detail_failure_does_not_invent_analog) ... ok
+test_D06_same_name_with_conflicting_source_is_not_safe_evidence (test_chat_acceptance.AnalogAcceptance.test_D06_same_name_with_conflicting_source_is_not_safe_evidence)
+QA-05: same names do not resolve source name/properties contradiction. ... FAIL
+test_F01_provider_error_uses_real_fallback (test_chat_acceptance.BoundaryAcceptance.test_F01_provider_error_uses_real_fallback) ... ok
+test_F02_unseen_detail_id_is_rejected (test_chat_acceptance.BoundaryAcceptance.test_F02_unseen_detail_id_is_rejected) ... ok
+test_F03_false_model_facts_must_not_reach_customer (test_chat_acceptance.BoundaryAcceptance.test_F03_false_model_facts_must_not_reach_customer)
+QA-06: adversarial provider response, no live model claim. ... FAIL
+test_F04_detail_schema_and_identity_errors_propagate_through_chat (test_chat_acceptance.BoundaryAcceptance.test_F04_detail_schema_and_identity_errors_propagate_through_chat) ... ok
+test_F05_fresh_session_cannot_confirm_other_sessions_cart (test_chat_acceptance.BoundaryAcceptance.test_F05_fresh_session_cannot_confirm_other_sessions_cart) ... ok
+test_F06_failed_confirmation_consumes_pending_without_mutation (test_chat_acceptance.BoundaryAcceptance.test_F06_failed_confirmation_consumes_pending_without_mutation) ... ok
+test_F07_cart_rechecks_total_already_added (test_chat_acceptance.BoundaryAcceptance.test_F07_cart_rechecks_total_already_added) ... ok
+test_C01_request_requires_confirmation (test_chat_acceptance.CartAcceptance.test_C01_request_requires_confirmation) ... ok
+test_C02_confirmation_mutates_only_demo_cart (test_chat_acceptance.CartAcceptance.test_C02_confirmation_mutates_only_demo_cart) ... ok
+test_C03_cancel_does_not_mutate (test_chat_acceptance.CartAcceptance.test_C03_cancel_does_not_mutate) ... ok
+test_C04_quantity_above_stock_is_rejected (test_chat_acceptance.CartAcceptance.test_C04_quantity_above_stock_is_rejected) ... ok
+test_C05_confirmation_without_proposal_is_rejected (test_chat_acceptance.CartAcceptance.test_C05_confirmation_without_proposal_is_rejected) ... ok
+test_C06_injection_cannot_replace_confirmation (test_chat_acceptance.CartAcceptance.test_C06_injection_cannot_replace_confirmation) ... ok
+test_C07_stock_drop_blocks_confirmation (test_chat_acceptance.CartAcceptance.test_C07_stock_drop_blocks_confirmation) ... ok
+test_C08_confirmation_is_single_use (test_chat_acceptance.CartAcceptance.test_C08_confirmation_is_single_use) ... ok
+test_B01_exact_article_uses_real_sqlite (test_chat_acceptance.ChatAcceptance.test_B01_exact_article_uses_real_sqlite) ... ok
+test_B02_availability_from_fresh_detail (test_chat_acceptance.ChatAcceptance.test_B02_availability_from_fresh_detail) ... ok
+test_B03_price_replaces_snapshot (test_chat_acceptance.ChatAcceptance.test_B03_price_replaces_snapshot) ... ok
+test_B04_properties_reach_model_unchanged (test_chat_acceptance.ChatAcceptance.test_B04_properties_reach_model_unchanged) ... ok
+test_B05_missing_product_has_no_detail (test_chat_acceptance.ChatAcceptance.test_B05_missing_product_has_no_detail) ... ok
+test_B06_ambiguous_query_keeps_candidates (test_chat_acceptance.ChatAcceptance.test_B06_ambiguous_query_keeps_candidates) ... ok
+test_B07_followup_uses_history_but_refreshes_detail (test_chat_acceptance.ChatAcceptance.test_B07_followup_uses_history_but_refreshes_detail) ... ok
+test_B08_fallback_unknown_price_is_not_zero (test_chat_acceptance.ChatAcceptance.test_B08_fallback_unknown_price_is_not_zero) ... ok
+test_B09_fallback_unknown_stock_is_not_zero (test_chat_acceptance.ChatAcceptance.test_B09_fallback_unknown_stock_is_not_zero) ... ok
+test_B10_fallback_must_disclose_conflicting_characteristics (test_chat_acceptance.ChatAcceptance.test_B10_fallback_must_disclose_conflicting_characteristics)
+QA-03: deterministic fallback ignores properties conflicts. ... FAIL
+test_B11_no_certificate_is_not_synthesized_in_tool_output (test_chat_acceptance.ChatAcceptance.test_B11_no_certificate_is_not_synthesized_in_tool_output) ... ok
+test_B12_injection_cannot_enable_mutating_llm_tool (test_chat_acceptance.ChatAcceptance.test_B12_injection_cannot_enable_mutating_llm_tool) ... ok
+test_B13_description_injection_is_data_and_cannot_mutate_cart (test_chat_acceptance.ChatAcceptance.test_B13_description_injection_is_data_and_cannot_mutate_cart) ... ok
+test_B14_purchase_terms_have_no_invented_backend_source (test_chat_acceptance.ChatAcceptance.test_B14_purchase_terms_have_no_invented_backend_source) ... ok
+test_B15_unsynced_catalog_is_error_not_not_found (test_chat_acceptance.ChatAcceptance.test_B15_unsynced_catalog_is_error_not_not_found) ... ok
+test_B16_detail_timeout_never_falls_back_to_snapshot_price (test_chat_acceptance.ChatAcceptance.test_B16_detail_timeout_never_falls_back_to_snapshot_price) ... ok
+test_B17_unknown_request_does_not_pick_a_product (test_chat_acceptance.ChatAcceptance.test_B17_unknown_request_does_not_pick_a_product) ... ok
+test_B18_payment_data_must_not_be_saved_in_history (test_chat_acceptance.ChatAcceptance.test_B18_payment_data_must_not_be_saved_in_history)
+QA-04: synthetic test card only; no real personal/payment information. ... FAIL
+test_allowed_origin_get_and_unsynced_response (test_cors.CorsTests.test_allowed_origin_get_and_unsynced_response) ... ok
+test_other_origins_are_not_allowed (test_cors.CorsTests.test_other_origins_are_not_allowed) ... ok
+test_preflight_allows_get_and_post (test_cors.CorsTests.test_preflight_allows_get_and_post) ... ok
+test_cancel_ambiguous_and_injection_never_add (test_demo_cart.DemoCartTests.test_cancel_ambiguous_and_injection_never_add) ... ok
+test_detail_error_does_not_add_and_consumes_confirmation (test_demo_cart.DemoCartTests.test_detail_error_does_not_add_and_consumes_confirmation) ... ok
+test_existing_cart_is_included_in_stock_check (test_demo_cart.DemoCartTests.test_existing_cart_is_included_in_stock_check) ... ok
+test_injection_cannot_create_or_confirm_action_in_one_message (test_demo_cart.DemoCartTests.test_injection_cannot_create_or_confirm_action_in_one_message) ... ok
+test_proposal_confirmation_and_duplicate_confirmation (test_demo_cart.DemoCartTests.test_proposal_confirmation_and_duplicate_confirmation) ... ok
+test_sessions_are_isolated (test_demo_cart.DemoCartTests.test_sessions_are_isolated) ... ok
+test_stock_drop_before_confirmation (test_demo_cart.DemoCartTests.test_stock_drop_before_confirmation) ... ok
+test_zero_negative_excess_and_unknown_stock (test_demo_cart.DemoCartTests.test_zero_negative_excess_and_unknown_stock) ... ok
+test_absent_fields_are_not_invented (test_detail.DetailTests.test_absent_fields_are_not_invented) ... ok
+test_full_card_is_forwarded_without_normalization (test_detail.DetailTests.test_full_card_is_forwarded_without_normalization) ... ok
+test_malformed_or_wrong_card_is_not_success (test_detail.DetailTests.test_malformed_or_wrong_card_is_not_success) ... ok
+test_timeout_and_missing_credentials (test_detail.DetailTests.test_timeout_and_missing_credentials) ... ok
+test_upstream_errors (test_detail.DetailTests.test_upstream_errors) ... ok
+test_corrupt_catalog_is_503 (test_ekt_qa.EktEndpointQA.test_corrupt_catalog_is_503) ... ok
+test_detail_does_not_invent_certificate_or_missing_fields (test_ekt_qa.EktEndpointQA.test_detail_does_not_invent_certificate_or_missing_fields) ... ok
+test_detail_fetches_fresh_data_on_each_request (test_ekt_qa.EktEndpointQA.test_detail_fetches_fresh_data_on_each_request) ... ok
+test_detail_invalid_id_never_calls_ekt (test_ekt_qa.EktEndpointQA.test_detail_invalid_id_never_calls_ekt) ... ok
+test_detail_preserves_conflict_instead_of_correcting_it (test_ekt_qa.EktEndpointQA.test_detail_preserves_conflict_instead_of_correcting_it) ... ok
+test_detail_preserves_quantity_stores_and_properties (test_ekt_qa.EktEndpointQA.test_detail_preserves_quantity_stores_and_properties) ... ok
+test_detail_preserves_zero_and_unknown_quantity (test_ekt_qa.EktEndpointQA.test_detail_preserves_zero_and_unknown_quantity) ... ok
+test_detail_rejects_non_object_json (test_ekt_qa.EktEndpointQA.test_detail_rejects_non_object_json)
+QA-01 regression: malformed detail must not be a successful card. ... ok
+test_detail_rejects_wrong_product_identity (test_ekt_qa.EktEndpointQA.test_detail_rejects_wrong_product_identity)
+QA-02 regression: requested ID must not become another product. ... ok
+test_detail_retains_untrusted_text_as_data (test_ekt_qa.EktEndpointQA.test_detail_retains_untrusted_text_as_data) ... ok
+test_detail_timeout_network_and_invalid_json (test_ekt_qa.EktEndpointQA.test_detail_timeout_network_and_invalid_json) ... ok
+test_detail_upstream_errors_are_safe (test_ekt_qa.EktEndpointQA.test_detail_upstream_errors_are_safe) ... ok
+test_exact_article_excludes_partial_matches (test_ekt_qa.EktEndpointQA.test_exact_article_excludes_partial_matches) ... ok
+test_literal_sql_characters_do_not_expand_search (test_ekt_qa.EktEndpointQA.test_literal_sql_characters_do_not_expand_search) ... ok
+test_missing_catalog_is_503_and_not_created (test_ekt_qa.EktEndpointQA.test_missing_catalog_is_503_and_not_created) ... ok
+test_name_search_preserves_ambiguity (test_ekt_qa.EktEndpointQA.test_name_search_preserves_ambiguity) ... ok
+test_price_zero_null_string_remain_distinct (test_ekt_qa.EktEndpointQA.test_price_zero_null_string_remain_distinct) ... ok
+test_search_contract_excludes_unavailable_facts (test_ekt_qa.EktEndpointQA.test_search_contract_excludes_unavailable_facts) ... ok
+test_search_invalid_input_rejected (test_ekt_qa.EktEndpointQA.test_search_invalid_input_rejected) ... ok
+test_synced_empty_catalog_is_200 (test_ekt_qa.EktEndpointQA.test_synced_empty_catalog_is_200) ... ok
+test_unknown_product_is_successful_empty_search (test_ekt_qa.EktEndpointQA.test_unknown_product_is_successful_empty_search) ... ok
+test_unsynced_schema_is_503 (test_ekt_qa.EktEndpointQA.test_unsynced_schema_is_503) ... ok
+test_ambiguous_does_not_choose_product (test_fallback.FallbackTests.test_ambiguous_does_not_choose_product) ... ok
+test_ekt_failure_is_not_replaced_by_sqlite_price (test_fallback.FallbackTests.test_ekt_failure_is_not_replaced_by_sqlite_price) ... ok
+test_exact_article_in_sentence_uses_fresh_detail (test_fallback.FallbackTests.test_exact_article_in_sentence_uses_fresh_detail) ... ok
+test_missing_values_and_zero_are_distinct (test_fallback.FallbackTests.test_missing_values_and_zero_are_distinct) ... ok
+test_no_match_and_no_partial_match (test_fallback.FallbackTests.test_no_match_and_no_partial_match) ... ok
+test_bad_schema_repeated_page_and_limit_roll_back (test_search.LocalCatalogTests.test_bad_schema_repeated_page_and_limit_roll_back) ... ok
+test_cancellation_rolls_back (test_search.LocalCatalogTests.test_cancellation_rolls_back) ... ok
+test_exact_article_priority_across_whole_catalog (test_search.LocalCatalogTests.test_exact_article_priority_across_whole_catalog) ... ok
+test_failed_refresh_preserves_previous_snapshot (test_search.LocalCatalogTests.test_failed_refresh_preserves_previous_snapshot) ... ok
+test_http_search_never_uses_ekt_or_detail (test_search.LocalCatalogTests.test_http_search_never_uses_ekt_or_detail) ... ok
+test_missing_and_empty_catalog_are_distinct (test_search.LocalCatalogTests.test_missing_and_empty_catalog_are_distinct) ... ok
+test_readers_see_old_snapshot_until_commit (test_search.LocalCatalogTests.test_readers_see_old_snapshot_until_commit) ... ok
+test_refresh_updates_and_removes_old_products (test_search.LocalCatalogTests.test_refresh_updates_and_removes_old_products) ... ok
+test_sync_wraparound_deduplication_and_fields (test_search.LocalCatalogTests.test_sync_wraparound_deduplication_and_fields) ... ok
+test_transient_error_retries_same_page (test_search.LocalCatalogTests.test_transient_error_retries_same_page) ... ok
+test_unicode_casefold_and_literal_substrings (test_search.LocalCatalogTests.test_unicode_casefold_and_literal_substrings) ... ok
 
-OK (skipped=29, expected failures=2)
+======================================================================
+FAIL: test_D06_same_name_with_conflicting_source_is_not_safe_evidence (test_chat_acceptance.AnalogAcceptance.test_D06_same_name_with_conflicting_source_is_not_safe_evidence)
+QA-05: same names do not resolve source name/properties contradiction.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\aitzh\OneDrive\Desktop\HackAlemAI\hack-f6cfd1cd-go-team\.qa-worktree\tests\test_chat_acceptance.py", line 283, in test_D06_same_name_with_conflicting_source_is_not_safe_evidence
+    self.assertEqual(data["analogs"], [], "QA-05: contradictory source still yields a recommended candidate")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'source_product_id': 515291, 'product': [479 chars]м.'}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'source_product_id': 515291, 'product': {'id': 515292, 'name': 'Автомат 160A 400V', 'article': 'QA-ANALOG', 'price': 120, 'quantity': 5, 'image': None, 'url': 'https://ekt.kz/catalog/qa-alternative/'}, 'quantity': 5, 'explanation': 'Совпадает название без декоративных символов; совпали обозначения из названия: 160a, 400v. Совпали свойства EKT: NOMINALNYY_TOK=250 А.', 'matched_properties': {'NOMINALNYY_TOK': '250 А'}, 'disclaimer': 'Полная взаимозаменяемость не подтверждена; перед заменой нужна проверка специалистом.'}
+
+Diff is 715 characters long. Set self.maxDiff to None to see it. : QA-05: contradictory source still yields a recommended candidate
+
+======================================================================
+FAIL: test_F03_false_model_facts_must_not_reach_customer (test_chat_acceptance.BoundaryAcceptance.test_F03_false_model_facts_must_not_reach_customer)
+QA-06: adversarial provider response, no live model claim.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\aitzh\OneDrive\Desktop\HackAlemAI\hack-f6cfd1cd-go-team\.qa-worktree\tests\test_chat_acceptance.py", line 306, in test_F03_false_model_facts_must_not_reach_customer
+    self.assertNotEqual(data["message"], fabricated, "QA-06: unsupported model facts reach HTTP response unchanged")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Цена 1, остаток 999; сертификат https://example.test/invented.pdf' == 'Цена 1, остаток 999; сертификат https://example.test/invented.pdf' : QA-06: unsupported model facts reach HTTP response unchanged
+
+======================================================================
+FAIL: test_B10_fallback_must_disclose_conflicting_characteristics (test_chat_acceptance.ChatAcceptance.test_B10_fallback_must_disclose_conflicting_characteristics)
+QA-03: deterministic fallback ignores properties conflicts.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\aitzh\OneDrive\Desktop\HackAlemAI\hack-f6cfd1cd-go-team\.qa-worktree\tests\test_chat_acceptance.py", line 88, in test_B10_fallback_must_disclose_conflicting_characteristics
+    self.assertTrue(any(term in data["message"].casefold() for term in ["расхожд", "противореч", "конфликт"]),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "QA-03: conflict 160А/250 А is not disclosed: " + data["message"])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : QA-03: conflict 160А/250 А is not disclosed: Автомат 160А. Цена: 100. Остаток: 3. Данные получены из EKT.
+
+======================================================================
+FAIL: test_B18_payment_data_must_not_be_saved_in_history (test_chat_acceptance.ChatAcceptance.test_B18_payment_data_must_not_be_saved_in_history)
+QA-04: synthetic test card only; no real personal/payment information.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\aitzh\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\aitzh\OneDrive\Desktop\HackAlemAI\hack-f6cfd1cd-go-team\.qa-worktree\tests\test_chat_acceptance.py", line 154, in test_B18_payment_data_must_not_be_saved_in_history
+    self.assertNotIn(sentinel, stored, "QA-04: payment data persisted in session history")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '4111111111111111' unexpectedly found in '[[{"role": "user", "content": "\\u0421\\u043e\\u0445\\u0440\\u0430\\u043d\\u0438 \\u043d\\u043e\\u043c\\u0435\\u0440 \\u043c\\u043e\\u0435\\u0439 \\u0442\\u0435\\u0441\\u0442\\u043e\\u0432\\u043e\\u0439 \\u043a\\u0430\\u0440\\u0442\\u044b 4111111111111111"}, {"id": "qa-message", "content": [{"annotations": [], "text": "\\u041d\\u0435 \\u043f\\u0440\\u0438\\u0441\\u044b\\u043b\\u0430\\u0439\\u0442\\u0435 \\u043f\\u043b\\u0430\\u0442\\u0451\\u0436\\u043d\\u044b\\u0435 \\u0440\\u0435\\u043a\\u0432\\u0438\\u0437\\u0438\\u0442\\u044b.", "type": "output_text"}], "role": "assistant", "status": "completed", "type": "message"}]]' : QA-04: payment data persisted in session history
+
+----------------------------------------------------------------------
+Ran 121 tests in 14.019s
+
+FAILED (failures=4)

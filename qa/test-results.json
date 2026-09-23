@@ -1,0 +1,15 @@
+{
+  "total": 121,
+  "passed": 117,
+  "failed": 4,
+  "errors": 0,
+  "skipped": 0,
+  "expectedFailure": 0,
+  "unexpectedSuccess": 0,
+  "failing_scenarios": [
+    "test_chat_acceptance.AnalogAcceptance.test_D06_same_name_with_conflicting_source_is_not_safe_evidence",
+    "test_chat_acceptance.BoundaryAcceptance.test_F03_false_model_facts_must_not_reach_customer",
+    "test_chat_acceptance.ChatAcceptance.test_B10_fallback_must_disclose_conflicting_characteristics",
+    "test_chat_acceptance.ChatAcceptance.test_B18_payment_data_must_not_be_saved_in_history"
+  ]
+}
