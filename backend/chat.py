@@ -3,7 +3,7 @@ import asyncio
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Optional, Literal
 from uuid import UUID, uuid4
 
 import openai
@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 from starlette.concurrency import run_in_threadpool
 
 from backend.ekt_service import EktError
+from backend.chat_fallback import fallback_reply
 
 
 INSTRUCTIONS = """Ты консультант каталога EKT. Отвечай кратко на языке пользователя.
@@ -54,6 +55,7 @@ class ChatResponse(BaseModel):
     message: str
     products: list[dict[str, Any]]
     tools_used: list[str]
+    mode: Literal["openai", "fallback"]
 
 
 class ChatError(Exception):
@@ -79,8 +81,6 @@ class ChatService:
         self.sessions = {}
 
     async def reply(self, body: ChatRequest) -> dict:
-        if self.client is None:
-            raise ChatError(503, 'openai_not_configured', 'Заполните OPENAI_API_KEY на сервере.')
         now = time.monotonic()
         self.sessions = {k: s for k, s in self.sessions.items() if s.busy or now-s.touched < self.TTL}
         sid = str(body.session_id) if body.session_id else str(uuid4())
@@ -98,26 +98,32 @@ class ChatService:
             raise ChatError(409, 'session_busy', 'Дождитесь ответа на предыдущее сообщение.')
         session.busy = True
         try:
-            return await asyncio.wait_for(self._run(body.message, sid, session), timeout=120)
+            return await asyncio.wait_for(self._with_fallback(body.message, sid, session), timeout=150)
         except asyncio.TimeoutError:
             raise ChatError(504, 'chat_timeout', 'Превышено время ожидания ответа чата.') from None
         except EktError as exc:
             raise ChatError(exc.status_code, 'catalog_error', exc.detail) from None
-        except openai.AuthenticationError:
-            raise ChatError(503, 'openai_auth_error', 'OpenAI отклонил серверный API-ключ.') from None
-        except (openai.NotFoundError, openai.PermissionDeniedError):
-            raise ChatError(503, 'model_unavailable', f'Модель {self.model} не найдена или недоступна API-проекту. Подмена модели не выполнялась.') from None
-        except openai.RateLimitError:
-            raise ChatError(429, 'openai_rate_limit', 'OpenAI: превышен лимит или исчерпана квота.') from None
-        except openai.APITimeoutError:
-            raise ChatError(504, 'openai_timeout', 'OpenAI не ответил вовремя.') from None
-        except openai.APIError:
-            raise ChatError(502, 'openai_error', 'Ошибка запроса к OpenAI. Проверьте конфигурацию модели.') from None
         finally:
             session.busy = False
             session.touched = time.monotonic()
             if not session.turns:
                 self.sessions.pop(sid, None)
+
+    async def _with_fallback(self, message, sid, session):
+        if self.client is not None:
+            try:
+                return await asyncio.wait_for(self._run(message, sid, session), timeout=120)
+            except (openai.APIError, asyncio.TimeoutError):
+                # Only provider failures enable the deterministic reserve mode.
+                # Catalogue errors and invalid tool calls still propagate.
+                pass
+        result = await fallback_reply(message, self.catalog, self.ekt)
+        session.turns.append([{'role': 'user', 'content': message},
+                              {'role': 'assistant', 'content': result['message']}])
+        while (len(session.turns) > self.MAX_TURNS or
+               len(json.dumps(session.turns, ensure_ascii=False)) > self.MAX_HISTORY_CHARS):
+            session.turns.pop(0)
+        return {'session_id': sid, **result, 'mode': 'fallback'}
 
     async def _run(self, message, sid, session):
         history = [item for turn in session.turns for item in turn]
@@ -148,7 +154,7 @@ class ChatService:
                        len(json.dumps(session.turns, ensure_ascii=False)) > self.MAX_HISTORY_CHARS):
                     session.turns.pop(0)
                 return {'session_id': sid, 'message': response.output_text,
-                        'products': list(products.values()), 'tools_used': used}
+                        'products': list(products.values()), 'tools_used': used, 'mode': 'openai'}
             for call in calls:
                 if len(used) >= 6:
                     raise ChatError(502, 'tool_limit', 'Превышен лимит действий модели. Уточните запрос.')

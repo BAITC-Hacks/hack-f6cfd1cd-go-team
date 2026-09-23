@@ -104,7 +104,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(error.exception.code, 'catalog_error')
         self.assertEqual(len(llm.requests), 1)
 
-    async def test_model_unavailable_no_fallback_and_sanitized_errors(self):
+    async def test_provider_errors_use_fallback_without_changing_model(self):
         request = httpx.Request('POST', 'https://api.openai.com/v1/responses')
         cases = [(openai.NotFoundError('sensitive', response=httpx.Response(404, request=request), body=None), 'model_unavailable'),
                  (openai.AuthenticationError('sensitive', response=httpx.Response(401, request=request), body=None), 'openai_auth_error'),
@@ -112,10 +112,11 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
                  (openai.APITimeoutError(request=request), 'openai_timeout')]
         for exc, code in cases:
             service, llm = self.service([exc])
-            with self.assertRaises(ChatError) as error:
-                await service.reply(ChatRequest(message='test'))
-            self.assertEqual(error.exception.code, code)
-            self.assertNotIn('sensitive', error.exception.message)
+            response = await service.reply(ChatRequest(message='ABC'))
+            self.assertEqual(response['mode'], 'fallback')
+            self.assertEqual(response['products'][0]['price'], 123)
+            self.assertNotIn('sensitive', response['message'])
+            self.assertEqual(llm.requests[0]['model'], 'gpt-5.6-luna')
             self.assertEqual(len(llm.requests), 1)
 
     async def test_history_limit_expiry_and_isolation(self):
@@ -171,12 +172,14 @@ class ChatHTTPTests(unittest.TestCase):
             for body in [{}, {'message': ''}, {'message': ' '}, {'message': 'x'*2001},
                          {'message': 'test', 'session_id': 'invalid'}]:
                 self.assertEqual(client.post('/api/chat', json=body).status_code, 422)
+            app.state.chat.catalog = Mock()
+            app.state.chat.catalog.search.return_value = {'items': [], 'count': 0}
             response = client.post('/api/chat', json={'message': 'test'},
                                    headers={'Origin': 'http://127.0.0.1:5173'})
-            self.assertEqual(response.status_code, 503)
-            self.assertEqual(response.json()['error']['code'], 'openai_not_configured')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['mode'], 'fallback')
             self.assertEqual(response.headers['access-control-allow-origin'], 'http://127.0.0.1:5173')
             app.state.chat = ChatService(FakeLLM([answer('Здравствуйте')]), 'gpt-5.6-luna', Mock(), Mock())
             response = client.post('/api/chat', json={'message': 'Привет'})
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(set(response.json()), {'session_id', 'message', 'products', 'tools_used'})
+            self.assertEqual(set(response.json()), {'session_id', 'message', 'products', 'tools_used', 'mode'})

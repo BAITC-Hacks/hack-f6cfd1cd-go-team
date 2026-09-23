@@ -131,3 +131,5 @@ python -m unittest discover -s tests -v
 ## AI-чат
 
 [Контракт POST /api/chat, ошибки и настройка](chat-api-contract.md). Реализация: `backend/chat.py`. Для чата заполните локальный `OPENAI_API_KEY`; модель по умолчанию `gpt-5.6-luna`, без автоматической подмены. Search/detail работают и без ключа OpenAI. Тесты чата используют fake LLM и не расходуют API-квоту.
+
+При отсутствии/ошибке OpenAI POST /api/chat использует детерминированный резервный поиск точного артикула и актуальный EKT detail. Поле mode различает openai/fallback. См. chat-api-contract.md.
